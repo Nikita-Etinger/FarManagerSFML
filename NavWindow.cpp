@@ -97,21 +97,23 @@ void NavWindow::processEvent(sf::Event event, sf::RenderWindow& window)
 
 		if (inputField.getRectangle().getGlobalBounds().contains(localPosition)) {
 			inputField.setActive(true);
-			activeField = &inputField;
+			activeText = inputField.getText();
 		}
 		else {
 			inputField.setActive(false);
-			activeField = nullptr;
+			
+
 		}
 		for (auto& x : fields) {
 
 			if (x.getRectangle().getGlobalBounds().contains(localPosition)) {
 				x.setActive(true);
-				activeField = &x;
+				activeText = x.getText();
 			}
 			else {
 				x.setActive(false);
-				activeField = nullptr;
+
+
 			}
 		}
 	}
@@ -125,7 +127,6 @@ void NavWindow::processEvent(sf::Event event, sf::RenderWindow& window)
 				}
 				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
 					inputField.setActive(false);
-					activeField = nullptr;
 					
 				}
 				else {
@@ -138,20 +139,27 @@ void NavWindow::processEvent(sf::Event event, sf::RenderWindow& window)
 	
 }
 void NavWindow::updateFields() {
-	fs::path folderPath = inputField.getText(); // Текущая папка
+	if (!inputField.getActive()) {
+		fs::path folderPath = inputField.getText(); // Текущая папка
+		if (fs::exists(folderPath)) {
+			oldPath = inputField.getText();
 
-	std::vector<std::string> fieldTexts;
 
-	for (const auto& entry : fs::directory_iterator(folderPath))
-	{
-		if (entry.is_regular_file())
-		{
-			std::string filename = entry.path().filename().string();
-			fieldTexts.push_back(filename);
+			std::vector<std::string> fieldTexts;
+
+			for (const auto& entry : fs::directory_iterator(folderPath))
+			{
+				if (entry.is_regular_file())
+				{
+					std::string filename = entry.path().filename().string();
+					fieldTexts.push_back(filename);
+				}
+			}
+
+			createFields(fieldTexts);
 		}
+		else inputField.setText(oldPath);
 	}
-
-	createFields(fieldTexts);
 
 }
 void NavWindow::renderFields(sf::RenderWindow& window) {
@@ -162,16 +170,12 @@ void NavWindow::renderFields(sf::RenderWindow& window) {
 }
 void NavWindow::createFields(const std::vector<std::string>& fieldTexts)
 {
-	std::string activeFieldPath = "";
-	if (activeField != nullptr) {
 
-		std::string activeFieldPath = activeField->getText();
-		std::cout<< activeField->getText();
-	}
+
 	fields.clear(); 
 
 	for (const auto& text : fieldTexts) {
-	 
+		std::cout << activeText << std::endl;
 		Field newField(
 			sf::Vector2f(rectangle.getSize().x, BUTTON_SIZE),
 			sf::Vector2f(rectangle.getPosition().x, rectangle.getPosition().y + (fields.size() + 1) * (BUTTON_SIZE + 2)),
@@ -179,7 +183,9 @@ void NavWindow::createFields(const std::vector<std::string>& fieldTexts)
 			sf::Color::Color(255, 255, 255, 255),
 			24
 		);
-		if (text == activeFieldPath)newField.setActive(true);
+		if (activeText == text) {
+			newField.setActive(true);
+		}
 		
 
 

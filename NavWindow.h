@@ -18,7 +18,8 @@ class NavWindow
 	int fontSize;
 
 	InputField inputField;
-
+	std::string activeText;
+	std::string oldPath;
 
 public:
 	NavWindow(sf::Vector2f position, sf::Vector2f size);
